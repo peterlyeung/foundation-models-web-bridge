@@ -1,0 +1,43 @@
+<!doctype html>
+<!--
+  Runs inside the WKWebView hosted by WebLLMView.swift.
+  Calls Foundation Models through the native bridge, not the network --
+  there is no server here, and none is needed for this path.
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<title>On-Device LLM, Bridged</title>
+<style>
+  body { font-family: -apple-system, sans-serif; max-width: 640px; margin: 40px auto; padding: 0 20px; }
+  textarea { width: 100%; height: 80px; font-size: 16px; padding: 10px; box-sizing: border-box; }
+  button { margin-top: 10px; padding: 10px 20px; font-size: 16px; }
+  #reply { margin-top: 20px; padding: 16px; background: #f2f2f7; border-radius: 10px; white-space: pre-wrap; min-height: 24px; }
+  #reply.error { background: #ffe5e5; color: #b00020; }
+</style>
+</head>
+<body>
+  <h2>On-Device LLM, Bridged</h2>
+  <p>This page never talks to Foundation Models directly. It posts a message to native Swift code, which does.</p>
+  <textarea id="prompt" placeholder="Ask the on-device model something...">Explain WKUserContentController in one sentence.</textarea>
+  <button onclick="ask()">Ask</button>
+  <div id="reply"></div>
+
+<script>
+function ask() {
+  const prompt = document.getElementById('prompt').value;
+  document.getElementById('reply').textContent = 'Thinking...';
+  document.getElementById('reply').classList.remove('error');
+  // The only thing JavaScript ever calls -- everything past this line runs in Swift.
+  webkit.messageHandlers.onDeviceLLM.postMessage(prompt);
+}
+
+// Called from Swift via webView.evaluateJavaScript(...) once the model responds.
+function onLLMReply(text, isError) {
+  const el = document.getElementById('reply');
+  el.textContent = text;
+  el.classList.toggle('error', !!isError);
+}
+</script>
+</body>
+</html>

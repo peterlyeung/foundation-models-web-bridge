@@ -1,0 +1,51 @@
+<!doctype html>
+<!--
+  A REAL web page -- open this directly in any browser (not a WKWebView).
+  It talks to server.py over plain HTTP on localhost.
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<title>On-Device LLM, Local Server</title>
+<style>
+  body { font-family: -apple-system, sans-serif; max-width: 640px; margin: 40px auto; padding: 0 20px; }
+  textarea { width: 100%; height: 80px; font-size: 16px; padding: 10px; box-sizing: border-box; }
+  button { margin-top: 10px; padding: 10px 20px; font-size: 16px; }
+  #reply { margin-top: 20px; padding: 16px; background: #f2f2f7; border-radius: 10px; white-space: pre-wrap; min-height: 24px; }
+  #reply.error { background: #ffe5e5; color: #b00020; }
+</style>
+</head>
+<body>
+  <h2>On-Device LLM, Local Server</h2>
+  <p>This page fetch()es <code>server.py</code> directly over HTTP. No native app, no WKWebView &mdash; just make sure <code>python server.py</code> is running first.</p>
+  <textarea id="prompt" placeholder="Ask the on-device model something...">Explain WKUserContentController in one sentence.</textarea>
+  <button onclick="ask()">Ask</button>
+  <div id="reply"></div>
+
+<script>
+async function ask() {
+  const prompt = document.getElementById('prompt').value;
+  const el = document.getElementById('reply');
+  el.textContent = 'Thinking...';
+  el.classList.remove('error');
+  try {
+    const res = await fetch('http://127.0.0.1:8000/respond', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+    const data = await res.json();
+    if (data.error) {
+      el.textContent = data.error;
+      el.classList.add('error');
+    } else {
+      el.textContent = data.text;
+    }
+  } catch (e) {
+    el.textContent = 'Could not reach server.py — is it running on port 8000?';
+    el.classList.add('error');
+  }
+}
+</script>
+</body>
+</html>

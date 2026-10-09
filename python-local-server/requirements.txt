@@ -1,0 +1,4 @@
+apple_fm_sdk
+fastapi
+uvicorn
+pydantic
